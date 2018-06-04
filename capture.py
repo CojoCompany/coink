@@ -7,6 +7,12 @@ from machine import Pin
 sensor_address = 53
 
 
+def twos_complement(val, bits):
+    if (val & (1 << (bits - 1))) != 0:
+        val = val - (1 << bits)
+    return val
+
+
 def read_sensor(i2c):
     reply = bytearray(6)
     sensor = 0x6b
@@ -19,7 +25,21 @@ def read_sensor(i2c):
     i2c.readinto(reply)
     i2c.stop()
 
-    return reply, ack
+    x_high = reply[0]
+    x_low = (reply[4] >> 4)
+    y_high = reply[1]
+    y_low = (reply[4] & 0x0F)
+    z_high = reply[2]
+    z_low = (reply[5] & 0x0F)
+    t_high = reply[3]
+    t_low = (reply[5] >> 6)
+
+    x = twos_complement((x_high << 4) + x_low, 12)
+    y = twos_complement((y_high << 4) + y_low, 12)
+    z = twos_complement((z_high << 4) + z_low, 12)
+    t = twos_complement((t_high << 2) + t_low, 10)
+
+    return reply, (x, y, z, t), ack
 
 
 def main():
