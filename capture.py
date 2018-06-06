@@ -1,7 +1,11 @@
 import sys
+import time
 
 from machine import I2C
 from machine import Pin
+from machine import Signal
+from network import WLAN
+from network import STA_IF
 
 
 scan_address = 53
@@ -10,6 +14,22 @@ write_address = 0x6a
 read_address = 0x6b
 
 register_mod1 = 0x11
+
+
+led = Signal(Pin(2, Pin.OUT), invert=True)
+led.off()
+
+station = WLAN(STA_IF)
+station.active(True)
+station.connect('wifiap', 'secretpassword?')
+for i in range(10):
+    if station.isconnected():
+        break
+    sys.stdout.write('Waiting for connection to be established...')
+    time.sleep(1)
+else:
+    sys.stderr.write(message.format(ack))
+    led.on()
 
 
 def twos_complement(val, bits):
