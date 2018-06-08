@@ -1,14 +1,14 @@
-***************
-XXX - |version|
-***************
+*****************
+Coink - |version|
+*****************
 
 
 .. index:: abstract
 
-What is XXX?
-------------
+What is Coink?
+--------------
 
-TODO.
+Coink is an IoT piggy bank.
 
 
 How can I build it?
