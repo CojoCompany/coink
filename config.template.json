@@ -1,0 +1,7 @@
+{
+    "thingspeak_key": "0123456789ABCDEF",
+    "wifi": {
+        "ssid": "MyWifi",
+        "password": "secure123"
+    }
+}

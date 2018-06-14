@@ -1,5 +1,8 @@
+import json
 import sys
 import time
+
+import urequests
 
 from machine import I2C
 from machine import Pin
@@ -16,46 +19,10 @@ read_address = 0x6b
 register_mod1 = 0x11
 
 
-led = Signal(Pin(2, Pin.OUT), invert=True)
-led.off()
-
-station = WLAN(STA_IF)
-station.active(True)
-station.connect('wifiap', 'secretpassword?')
-for i in range(10):
-    if station.isconnected():
-        break
-    sys.stdout.write('Waiting for connection to be established...')
-    time.sleep(1)
-else:
-    sys.stderr.write(message.format(ack))
-    led.on()
-
-
 def twos_complement(val, bits):
     if (val & (1 << (bits - 1))) != 0:
         val = val - (1 << bits)
     return val
-
-
-def configure(i2c: I2C) -> int:
-    """
-    Configure the sensor to use Master Controlled Mode.
-
-    Also, enable clock stretching and disable interruptions. Sensor read out
-    is suppressed during ongoing ADC conversions.
-
-    Returns
-    -------
-    The number of acklowledges the sensor sent back. Should be 3.
-    """
-    request = bytearray([write_address, register_mod1, 0b10000101])
-
-    i2c.start()
-    ack = i2c.write(request)
-    i2c.stop()
-
-    return ack
 
 
 def read_registers(i2c, start, length):
@@ -97,17 +64,17 @@ def get_sensor_values(i2c):
         status = reply[6]
         pd0 = bool(status & 0b100)
         if not pd0:
-            message = 'Power-down flag 0 (PD0) was zero! Retrying...'
+            message = 'Power-down flag 0 (PD0) was zero! Retrying...\n'
             sys.stderr.write(message.format(ack))
             continue
         pd3 = bool(status & 0b1000)
         if not pd3:
-            message = 'Power-down flag 3 (PD3) was zero! Retrying...'
+            message = 'Power-down flag 3 (PD3) was zero! Retrying...\n'
             sys.stderr.write(message.format(ack))
             continue
         tbit = bool(status & 0b10000)
         if tbit:
-            message = 'T-bit was one! Retrying...'
+            message = 'T-bit was one! Retrying...\n'
             sys.stderr.write(message.format(ack))
             continue
         frame_counter = status & 0b11
@@ -115,22 +82,86 @@ def get_sensor_values(i2c):
     return reply, readings, ack, i, pd0, frame_counter
 
 
+class Node:
+    def __init__(self):
+        """
+        Initialize the node.
+
+        Performs the hardware setup and configuration loading from
+        `config.json` file.
+        """
+        self.led = Signal(Pin(2, Pin.OUT), invert=True)
+        self.led.off()
+
+        self.i2c = I2C(scl=Pin(5), sda=Pin(4), freq=400000)
+
+        self.station = WLAN(STA_IF)
+
+        self.config = json.load(open('config.json'))
+
+    def setup_sensor(self):
+        """
+        Configure the sensor to use Master Controlled Mode.
+
+        Also, enable clock stretching and disable interruptions. Sensor read
+        out is suppressed during ongoing ADC conversions.
+
+        Returns
+        -------
+        The number of acklowledges the sensor sent back. Should be 3.
+        """
+        devices = self.i2c.scan()
+        if not scan_address in devices:
+            message = 'Sensor "{}" does not seem to be available!\n'
+            sys.stderr.write(message.format(scan_address))
+            return
+
+        request = bytearray([write_address, register_mod1, 0b10000101])
+
+        self.i2c.start()
+        ack = self.i2c.write(request)
+        self.i2c.stop()
+
+        if not ack == 3:
+            message = 'Configuration failed after {} bytes!\n'
+            sys.stderr.write(message.format(ack))
+            return
+
+    def connect_wifi(self):
+        """
+        Connect the node to a wireless network.
+
+        The wireless network must be defined in the `config.json` file.
+        """
+        self.station.active(True)
+        config = self.config['wifi']
+        self.station.connect(config['ssid'], config['password'])
+        for i in range(10):
+            if self.station.isconnected():
+                break
+            sys.stdout.write('Waiting for connection to be established...\n')
+            time.sleep(1)
+        else:
+            message = 'Could not establish connection...\n'
+            sys.stderr.write(message.format(ack))
+            led.on()
+
+    def update_savings(self, savings):
+        """
+        Update the remote servers with the new savings.
+        """
+        url = 'https://api.thingspeak.com/update'
+        url += '?api_key={key}&field1={savings}'
+        url = url.format(key=self.config['thingspeak_key'], savings=savings)
+        reply = urequests.get(url)
+        return reply
+
+
 def main():
-    i2c = I2C(scl=Pin(5), sda=Pin(4), freq=400000)
-
-    devices = i2c.scan()
-    if not scan_address in devices:
-        message = 'Sensor "{}" does not seem to be available!'
-        sys.stderr.write(message.format(scan_address))
-        return
-
-    ack = configure(i2c)
-    if not ack == 3:
-        message = 'Configuration failed after {} bytes!'
-        sys.stderr.write(message.format(ack))
-        return
-
-    read_sensor(i2c)
+    node = Node()
+    node.setup_sensor()
+    node.connect_wifi()
 
 
-main()
+if __name__ == '__main__':
+    main()
