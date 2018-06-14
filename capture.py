@@ -4,6 +4,8 @@ import time
 
 import urequests
 
+import esp
+import machine
 from machine import I2C
 from machine import Pin
 from machine import Signal
@@ -18,6 +20,10 @@ read_address = 0x6b
 
 register_mod1 = 0x11
 
+reply = bytearray(7)
+trigger = 1 << 7
+request = bytearray([read_address, trigger + 0x00])
+
 
 def twos_complement(val, bits):
     if (val & (1 << (bits - 1))) != 0:
@@ -25,10 +31,7 @@ def twos_complement(val, bits):
     return val
 
 
-def read_registers(i2c, start, length):
-    reply = bytearray(length)
-    trigger = 1 << 7
-    request = bytearray([read_address, trigger + start])
+def read_registers(i2c):
 
     i2c.start()
     ack = i2c.write(request)
@@ -39,7 +42,7 @@ def read_registers(i2c, start, length):
 
 
 def read_sensor(i2c):
-    reply, ack = read_registers(i2c, 0x00, 7)
+    reply, ack = read_registers(i2c)
 
     x_high = reply[0]
     x_low = (reply[4] >> 4)
@@ -90,6 +93,9 @@ class Node:
         Performs the hardware setup and configuration loading from
         `config.json` file.
         """
+        esp.osdebug(None)
+        machine.freq(160000000)
+
         self.led = Signal(Pin(2, Pin.OUT), invert=True)
         self.led.off()
 
