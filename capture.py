@@ -4,7 +4,6 @@ import time
 
 import urequests
 
-import esp
 import machine
 from machine import I2C
 from machine import Pin
@@ -93,7 +92,6 @@ class Node:
         Performs the hardware setup and configuration loading from
         `config.json` file.
         """
-        esp.osdebug(None)
         machine.freq(160000000)
 
         self.led = Signal(Pin(2, Pin.OUT), invert=True)
