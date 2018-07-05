@@ -1,6 +1,7 @@
 import json
 import sys
 import time
+import array
 
 import urequests
 
@@ -22,6 +23,12 @@ register_mod1 = 0x11
 reply = bytearray(7)
 trigger = 1 << 7
 request = bytearray([read_address, trigger + 0x00])
+
+num_measures= 1000
+
+x_array = array.array('h', (0 for i in range(num_measures)))
+y_array = array.array('h', (0 for i in range(num_measures)))
+z_array = array.array('h', (0 for i in range(num_measures)))
 
 
 def twos_complement(val, bits):
@@ -160,12 +167,39 @@ class Node:
         reply = urequests.get(url)
         return reply
 
+    def read_coin(self):
+        """
+        Read magnetic sensor values `num_measures` times. The board's LED is
+        turned on when the readings start and turned off when done.
+        """
+        self.led.on()
+        for i in range (num_measures):
+            reply, (x, y, z, t), ack = read_sensor(self.i2c)
+            x_array[i] = x
+            y_array[i] = y
+            z_array[i] = z
+        self.led.off()
+
+    def save_readings(self):
+        """
+        Save magnetic sensor values from internal memory to a file.
+        """
+        with open('readings.csv', 'w') as f:
+            f.write('x,y,z\n')
+            for i in range (num_measures):
+                line = '{x},{y},{z}\n'.format(
+                    x=x_array[i],
+                    y=y_array[i],
+                    z=z_array[i]
+                )
+                f.write(line)
 
 def main():
     node = Node()
     node.setup_sensor()
     node.connect_wifi()
-
+    node.read_coin()
+    node.save_readings()
 
 if __name__ == '__main__':
     main()
