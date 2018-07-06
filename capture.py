@@ -18,6 +18,7 @@ scan_address = 53
 write_address = 0x6a
 read_address = 0x6b
 
+register_config = 0x10
 register_mod1 = 0x11
 
 reply = bytearray(7)
@@ -45,6 +46,19 @@ def read_registers(i2c):
     i2c.stop()
 
     return reply, ack
+
+
+def write_register(i2c, register, value):
+    """
+    Write a register with the given value.
+    """
+    message = bytearray([write_address, register, value])
+    i2c.start()
+    ack = i2c.write(message)
+    i2c.stop()
+    if not ack == 3:
+        message = 'Writing register failed after {} bytes!\n'
+        sys.stderr.write(message.format(ack))
 
 
 def read_sensor(i2c):
@@ -127,16 +141,8 @@ class Node:
             sys.stderr.write(message.format(scan_address))
             return
 
-        request = bytearray([write_address, register_mod1, 0b10000101])
-
-        self.i2c.start()
-        ack = self.i2c.write(request)
-        self.i2c.stop()
-
-        if not ack == 3:
-            message = 'Configuration failed after {} bytes!\n'
-            sys.stderr.write(message.format(ack))
-            return
+        write_register(self.i2c, register_config, 0b00001001)
+        write_register(self.i2c, register_mod1, 0b10000101)
 
     def connect_wifi(self):
         """
@@ -193,6 +199,7 @@ class Node:
                     z=z_array[i]
                 )
                 f.write(line)
+
 
 def main():
     node = Node()
