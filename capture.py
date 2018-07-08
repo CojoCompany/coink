@@ -186,11 +186,12 @@ class Node:
             z_array[i] = z
         self.led.off()
 
-    def save_readings(self):
+    def save_readings(self, file_name):
         """
-        Save magnetic sensor values from internal memory to a file.
+        Save magnetic sensor values from internal memory to a file with
+        the name 'file_name'.
         """
-        with open('readings.csv', 'w') as f:
+        with open(file_name, 'w') as f:
             f.write('x,y,z\n')
             for i in range (num_measures):
                 line = '{x},{y},{z}\n'.format(
@@ -206,7 +207,7 @@ def main():
     node.setup_sensor()
     node.connect_wifi()
     node.read_coin()
-    node.save_readings()
+    node.save_readings('1.csv')
 
 if __name__ == '__main__':
     main()
