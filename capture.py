@@ -30,6 +30,7 @@ num_measures= 1000
 x_array = array.array('h', (0 for i in range(num_measures)))
 y_array = array.array('h', (0 for i in range(num_measures)))
 z_array = array.array('h', (0 for i in range(num_measures)))
+t_array = array.array('h', (0 for i in range(num_measures)))
 
 
 def twos_complement(val, bits):
@@ -181,6 +182,9 @@ class Node:
         self.led.on()
         for i in range (num_measures):
             reply, (x, y, z, t), ack = read_sensor(self.i2c)
+            # Make sure we never try to store a value higher than the size of
+            # the `t_array` elements
+            t_array[i] = time.ticks_us() % 65536
             x_array[i] = x
             y_array[i] = y
             z_array[i] = z
@@ -192,12 +196,13 @@ class Node:
         the name 'file_name'.
         """
         with open(file_name, 'w') as f:
-            f.write('x,y,z\n')
+            f.write('t,x,y,z\n')
             for i in range (num_measures):
-                line = '{x},{y},{z}\n'.format(
+                line = '{t},{x},{y},{z}\n'.format(
+                    t=t_array[i],
                     x=x_array[i],
                     y=y_array[i],
-                    z=z_array[i]
+                    z=z_array[i],
                 )
                 f.write(line)
 
