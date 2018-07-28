@@ -1,0 +1,22 @@
+[[source]]
+url = "https://pypi.org/simple"
+verify_ssl = true
+name = "pypi"
+
+[dev-packages]
+sphinx = "*"
+sphinx-rtd-theme = "*"
+flake8 = "*"
+
+[packages]
+esptool = "*"
+doc8 = "*"
+urequests = "*"
+requests = "*"
+ampy = "*"
+notebook = "*"
+pandas = "*"
+matplotlib = "*"
+
+[requires]
+python_version = "3.6"
