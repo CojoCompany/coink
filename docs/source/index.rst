@@ -35,6 +35,7 @@ How can I build it?
    :maxdepth: 2
 
    setup.rst
+   data.rst
 
 
 Indices and tables
