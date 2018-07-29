@@ -36,6 +36,7 @@ How can I build it?
 
    setup.rst
    data.rst
+   cloud.rst
 
 
 Indices and tables
