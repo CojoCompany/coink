@@ -14,6 +14,13 @@ Coink is actually very easy to build. First we need the ramp to insert the
 coins. The ramp is a 3D design that can be very easily printed with any FDM 3D
 printer (or any other more-advance 3D printer if you have access to it).
 
+.. raw:: html
+
+   <div style="position: relative; padding-bottom: 60%; height: 0;">
+     <iframe src="https://render.githubusercontent.com/view/solid?commit=324cbe2c9197e2c0367bea7c304ffcd36a326f1e&enc_url=68747470733a2f2f7261772e67697468756275736572636f6e74656e742e636f6d2f436f6a6f436f6d70616e792f636f696e6b2f333234636265326339313937653263303336376265613763333034666663643336613332366631652f33642f72616d702e73746c&nwo=CojoCompany%2Fcoink&path=3d%2Framp.stl&repository_id=135504662&repository_type=Repository#59ec2a75-53a0-4c74-af08-70542d5da6d9" width="100%" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%">
+     </iframe>
+   </div>
+
 The 3D design is very simple but, in turn, we need to do some work before using
 it. First, we need to glue some plastic sheets to cover the inner parts of the
 ramp. This way we avoid the coin bumping into any disturbances around the
