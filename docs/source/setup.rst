@@ -4,7 +4,6 @@
 Setup
 *****
 
-
 .. index:: board
 
 Board
@@ -115,6 +114,30 @@ simply:
 
 Which should print a non-empty list.
 
+
+.. index:: server
+
+Server
+======
+
+The ESP8266 board will send the data to a remote server that on this first prototype is a home PC.  
+
+To work, the ESP8266 board and the PC should be connected to the same Wifi. We will rename the file ``config.template.json`` to ``config.json`` and include our Wifi name and password. 
+
+Besides, we need to add the host address (PC address) and an access port. To get the PC address on the Wifi network do::
+
+   ifconfig
+
+.. note:: The access port should be just a free port, try it for example with 5000 
+
+To launch the server on the PC:: 
+
+   python server.py
+
+Open a window on your favourite browser and introduce the host address and the port (host_address:port) and if everything went well you should see:
+
+.. figure:: figures/server_get.png
+   :align: center 
 
 References
 ==========
