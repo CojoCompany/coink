@@ -218,6 +218,26 @@ class Node:
                )
             response = urequests.post(url_post, data=f.read())
 
+    def save_select_readings(self, file_name):
+        """
+        Save relevant magnetic sensor values from internal memory to
+        a file with the name 'file_name'.
+        """
+        with open(file_name, 'w') as f:
+            f.write('x,y,z\n')
+            threshold = x_array[0] * 0.8
+            for i in range (num_measures):
+                if x_array[i] < threshold:
+                    i_intersect = i
+                    for j in range (i_intersect - 50, i_intersect + 100):
+                        line = '{x},{y},{z}\n'.format(
+                        x=x_array[j],
+                        y=y_array[j],
+                        z=z_array[j]
+                        )
+                        f.write(line)
+                    break
+
 
 def main():
     node = Node()
