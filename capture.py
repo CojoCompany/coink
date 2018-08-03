@@ -206,6 +206,18 @@ class Node:
                 )
                 f.write(line)
 
+    def send_readings(self, file_name):
+        """
+        Send magnetic sensor values from a file to the server detailed
+        on the file config.json.
+        """
+        with open(file_name, 'r') as f:
+            url_post = 'http://{host}:{port}/whatesp'.format(
+                   host=self.config['server']['host'],
+                   port=self.config['server']['port']
+               )
+            response = urequests.post(url_post, data=f.read())
+
 
 def main():
     node = Node()
