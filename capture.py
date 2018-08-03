@@ -238,13 +238,21 @@ class Node:
                         f.write(line)
                     break
 
+    def loop(self):
+        """
+        Read and send coin values forever.
+        """
+        while True:
+            self.read_coin()
+            self.save_select_readings('1_sel.csv')
+            self.send_readings('1_sel.csv')
+
 
 def main():
     node = Node()
     node.setup_sensor()
     node.connect_wifi()
-    node.read_coin()
-    node.save_readings('1.csv')
+    node.loop()
 
 if __name__ == '__main__':
     main()
