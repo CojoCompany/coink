@@ -77,6 +77,22 @@ both fit inside the box before glueing the ramp!
 
    Detail of the ramp inside the box.
 
+Once the ramp is fixed, we only need to stick the rest of the components to the
+lid:
+
+.. figure:: figures/coink_build_inside.jpg
+   :width: 70%
+   :align: center
+
+   All the required components fixed and the system powered!
+
+Note that we added a simple power circuit consisting of:
+
+- A LiPo battery (single cell).
+- A 3.3 V step-down DC-DC converter mounted on the breadboard.
+
+The output of the converter directly powers the board at 3.3 V.
+
 
 .. index:: wiring
 
