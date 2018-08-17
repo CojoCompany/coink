@@ -255,13 +255,3 @@ class Node:
             self.save_select_readings('1_sel.csv', start)
             print('Sending readings...')
             self.send_readings('1_sel.csv')
-
-
-def main():
-    node = Node()
-    node.setup_sensor()
-    node.connect_wifi()
-    node.loop()
-
-if __name__ == '__main__':
-    main()
