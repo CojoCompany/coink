@@ -25,12 +25,19 @@ reply = bytearray(7)
 trigger = 1 << 7
 request = bytearray([read_address, trigger + 0x00])
 
-num_measures= 1000
+num_measures= 500
 
 x_array = array.array('h', (0 for i in range(num_measures)))
 y_array = array.array('h', (0 for i in range(num_measures)))
 z_array = array.array('h', (0 for i in range(num_measures)))
 t_array = array.array('h', (0 for i in range(num_measures)))
+
+
+def coin_detected():
+    threshold = x_array[0] * 0.8
+    for i in range(num_measures):
+        if x_array[i] < threshold:
+            return i
 
 
 def twos_complement(val, bits):
@@ -218,25 +225,21 @@ class Node:
                )
             response = urequests.post(url_post, data=f.read())
 
-    def save_select_readings(self, file_name):
+    def save_select_readings(self, file_name, start):
         """
         Save relevant magnetic sensor values from internal memory to
         a file with the name 'file_name'.
         """
         with open(file_name, 'w') as f:
-            f.write('x,y,z\n')
-            threshold = x_array[0] * 0.8
-            for i in range (num_measures):
-                if x_array[i] < threshold:
-                    i_intersect = i
-                    for j in range (i_intersect - 50, i_intersect + 100):
-                        line = '{x},{y},{z}\n'.format(
-                        x=x_array[j],
-                        y=y_array[j],
-                        z=z_array[j]
-                        )
-                        f.write(line)
-                    break
+            f.write('t,x,y,z\n')
+            for i in range(max(0, start - 10), min(num_measures, start + 50)):
+                line = '{t},{x},{y},{z}\n'.format(
+                    t=t_array[i],
+                    x=x_array[i],
+                    y=y_array[i],
+                    z=z_array[i]
+                )
+                f.write(line)
 
     def loop(self):
         """
@@ -244,7 +247,13 @@ class Node:
         """
         while True:
             self.read_coin()
-            self.save_select_readings('1_sel.csv')
+            start = coin_detected()
+            print('Start at %s' % start)
+            if not start:
+                continue
+            print('Saving readings...')
+            self.save_select_readings('1_sel.csv', start)
+            print('Sending readings...')
             self.send_readings('1_sel.csv')
 
 
