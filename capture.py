@@ -25,19 +25,9 @@ reply = bytearray(7)
 trigger = 1 << 7
 request = bytearray([read_address, trigger + 0x00])
 
-num_measures= 500
+num_measures= 256
 
-x_array = array.array('h', (0 for i in range(num_measures)))
-y_array = array.array('h', (0 for i in range(num_measures)))
-z_array = array.array('h', (0 for i in range(num_measures)))
-t_array = array.array('h', (0 for i in range(num_measures)))
-
-
-def coin_detected():
-    threshold = x_array[0] * 0.8
-    for i in range(num_measures):
-        if x_array[i] < threshold:
-            return i
+ring = array.array('h', (0 for i in range(4 * num_measures)))
 
 
 def twos_complement(val, bits):
@@ -132,6 +122,8 @@ class Node:
 
         self.config = json.load(open('config.json'))
 
+        self.countdown = None
+
     def setup_sensor(self):
         """
         Configure the sensor to use Master Controlled Mode.
@@ -181,77 +173,48 @@ class Node:
         reply = urequests.get(url)
         return reply
 
-    def read_coin(self):
-        """
-        Read magnetic sensor values `num_measures` times. The board's LED is
-        turned on when the readings start and turned off when done.
-        """
-        self.led.on()
-        for i in range (num_measures):
-            reply, (x, y, z, t), ack = read_sensor(self.i2c)
-            # Make sure we never try to store a value higher than the size of
-            # the `t_array` elements
-            t_array[i] = time.ticks_us() % 65536
-            x_array[i] = x
-            y_array[i] = y
-            z_array[i] = z
-        self.led.off()
-
-    def save_readings(self, file_name):
-        """
-        Save magnetic sensor values from internal memory to a file with
-        the name 'file_name'.
-        """
-        with open(file_name, 'w') as f:
-            f.write('t,x,y,z\n')
-            for i in range (num_measures):
-                line = '{t},{x},{y},{z}\n'.format(
-                    t=t_array[i],
-                    x=x_array[i],
-                    y=y_array[i],
-                    z=z_array[i],
-                )
-                f.write(line)
-
-    def send_readings(self, file_name):
+    def send_readings(self):
         """
         Send magnetic sensor values from a file to the server detailed
         on the file config.json.
         """
-        with open(file_name, 'r') as f:
-            url_post = 'http://{host}:{port}/whatesp'.format(
-                   host=self.config['server']['host'],
-                   port=self.config['server']['port']
-               )
-            response = urequests.post(url_post, data=f.read())
+        url = 'http://{host}:{port}/whatesp'.format(**self.config['server'])
+        response = urequests.post(url, data=bytearray(ring))
 
-    def save_select_readings(self, file_name, start):
+    def callibrate(self):
         """
-        Save relevant magnetic sensor values from internal memory to
-        a file with the name 'file_name'.
+        Callibrate the sensor and set the threshold for coin detection.
         """
-        with open(file_name, 'w') as f:
-            f.write('t,x,y,z\n')
-            for i in range(max(0, start - 10), min(num_measures, start + 50)):
-                line = '{t},{x},{y},{z}\n'.format(
-                    t=t_array[i],
-                    x=x_array[i],
-                    y=y_array[i],
-                    z=z_array[i]
-                )
-                f.write(line)
+        total = 0
+        count = 10
+        for i in range(count):
+            reply, (x, y, z, t), ack = read_sensor(self.i2c)
+            total += x
+        self.threshold = 0.8 * total / count
 
     def loop(self):
         """
         Read and send coin values forever.
         """
+        i = 0
         while True:
-            self.read_coin()
-            start = coin_detected()
-            print('Start at %s' % start)
-            if not start:
-                continue
-            print('Saving readings...')
-            self.save_select_readings('1_sel.csv', start)
-            print('Sending readings...')
-            self.send_readings('1_sel.csv')
+            i = i % num_measures
+            reply, (x, y, z, t), ack = read_sensor(self.i2c)
+            # Make sure we never try to store a value higher than the size of
+            # the `t_array` elements
+            position = i * 4
+            ring[position] = time.ticks_us() % 65536
+            ring[position + 1] = x
+            ring[position + 2] = y
+            ring[position + 3] = z
+            if self.countdown is None:
+                if x < self.threshold:
+                    self.countdown = 150
+            else:
+                self.countdown -= 1
+                if self.countdown == 0:
+                    print('Sending readings...')
+                    self.send_readings()
+                    print('Readings sent!')
+                    self.countdown = None
+            i += 1
