@@ -1,10 +1,17 @@
+from io import BytesIO
 import json
 
-from flask import Flask, request
+from flask import Flask
+from flask import render_template
+from flask import request
+from flask import send_file
+import matplotlib
 
 from analysis import normalize
 from analysis import raw_to_dataframe
 
+
+matplotlib.use('svg')
 
 server = Flask(__name__)
 last_curve = None
@@ -23,12 +30,21 @@ def esp_handler():
     return 'ok'
 
 
+@server.route('/curve.svg')
+def curve():
+    df = normalize(last_curve)
+    figure = df.plot().get_figure()
+    img = BytesIO()
+    figure.savefig(img)
+    img.seek(0)
+    return send_file(img, mimetype='image/svg+xml')
+
+
 @server.route('/result', methods=['GET'])
 def result():
     if last_curve is None:
         return 'No data received'
-    df = normalize(last_curve)
-    return str(df)
+    return render_template('result.html')
 
 
 config = json.load(open('config.json'))
