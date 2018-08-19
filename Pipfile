@@ -8,6 +8,7 @@ sphinx = "*"
 sphinx-rtd-theme = "*"
 flake8 = "*"
 notebook = "*"
+pdbpp = "*"
 
 [packages]
 esptool = "*"
