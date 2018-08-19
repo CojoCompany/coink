@@ -1,5 +1,21 @@
+import numpy
 import pandas
 from pathlib import Path
+
+
+def raw_to_dataframe(raw):
+    data = numpy.frombuffer(raw, dtype='int16')
+    data = data.reshape((data.size // 4, 4))
+    df = pandas.DataFrame(data, columns=['t', 'x', 'y', 'z'])
+
+    # Center the curve
+    shift = len(df) // 2 - df['x'].idxmin()
+    df = df.reindex(numpy.roll(df.index, shift)).reset_index(drop=True)
+
+    df['t'] = df['t'].diff().cumsum() * 1e-6
+    df.loc[0, 't'] = 0.
+    df = df.set_index('t')
+    return df
 
 
 def read_data(fname):
@@ -12,7 +28,7 @@ def read_data(fname):
 
 def normalize(df):
     df = df.astype(float)
-    df /= df[:100].mean()
+    df /= df.iloc[:50].mean()
     df -= 1
     zone = df[df['x'] < -0.2]
     diff = zone.index[-1] - zone.index[0]
