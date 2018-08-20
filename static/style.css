@@ -1,0 +1,20 @@
+body {
+  background: #ffffff;
+  font-family: sans-serif;
+  margin: 0;
+}
+
+h1 {
+  margin: 0;
+  padding: .5em;
+  text-align: center;
+  color: #eeeeee;
+  background: #333333;
+}
+
+div.images img {
+  padding-top: 2em;
+  height: 400px;
+  width: 50%;
+  float: left;
+}

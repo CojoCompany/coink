@@ -178,7 +178,7 @@ class Node:
         Send magnetic sensor values from a file to the server detailed
         on the file config.json.
         """
-        url = 'http://{host}:{port}/whatesp'.format(**self.config['server'])
+        url = 'http://{host}:{port}/analyze'.format(**self.config['server'])
         response = urequests.post(url, data=bytearray(ring))
 
     def callibrate(self):

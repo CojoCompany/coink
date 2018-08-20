@@ -53,7 +53,7 @@ def load_data(coin, path: Path = None):
     return data
 
 
-def d0(curve):
+def axis_features(curve):
     diff = 0
     low = curve[0]
     d0_low = low
@@ -65,31 +65,31 @@ def d0(curve):
             d0_low = low
         if value == curve.min():
             break
-    return d0_low, diff
+    return {'min': curve.min(), 'l0': d0_low, 'd0': diff}
 
 
-def features(curve, coin):
-    l0_x, d0_x = d0(curve['x'])
-    l0_y, d0_y = d0(curve['y'])
-    l0_z, d0_z = d0(curve['z'])
-    features = {
+def summary(curve, coin):
+    x = axis_features(curve['x'])
+    y = axis_features(curve['y'])
+    z = axis_features(curve['z'])
+    summary = {
         'coin': coin,
-        'min_x': curve['x'].min(),
-        'min_y': curve['y'].min(),
-        'min_z': curve['z'].min(),
-        'l0_x': l0_x,
-        'l0_y': l0_y,
-        'l0_z': l0_z,
-        'd0_x': d0_x,
-        'd0_y': d0_y,
-        'd0_z': d0_z,
+        'min_x': x['min'],
+        'min_y': y['min'],
+        'min_z': z['min'],
+        'l0_x': x['l0'],
+        'l0_y': y['l0'],
+        'l0_z': z['l0'],
+        'd0_x': x['d0'],
+        'd0_y': y['d0'],
+        'd0_z': z['d0'],
     }
-    return features
+    return summary
 
 
-def data_features(c1, c2):
+def data_summary(c1, c2):
     data = zip(c1 + c2, ['1 €'] * 10 + ['2 €'] * 10)
-    return pandas.DataFrame([features(curve, coin) for curve, coin in data])
+    return pandas.DataFrame([summary(curve, coin) for curve, coin in data])
 
 
 def compare_min(df):
@@ -105,3 +105,12 @@ def compare_d0(df):
 def compare_l0(df):
     df.boxplot(['l0_x', 'l0_y', 'l0_z'], by='coin',
                layout=(1, 3), figsize=(12, 6))
+
+
+def classify_coin(curve):
+    min_x, l0_x, d0_x = axis_features(curve['x'])
+    if -0.40 > min_x > -0.55:
+        return 1
+    if -0.55 > min_x > -0.75:
+        return 2
+    return -1
