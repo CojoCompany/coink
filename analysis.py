@@ -35,7 +35,6 @@ def normalize(df):
     t0 = zone.index[0] - diff
     t1 = zone.index[-1] + diff
     df = df[t0:t1]
-    df = df.rolling(2).mean().dropna()
     df.index -= df.index[0]
     return df
 
