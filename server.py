@@ -34,6 +34,7 @@ def view():
 def analyze():
     raw = request.get_data()
     curve = raw_to_dataframe(raw)
+    curve = normalize(curve)
     last_coin['curve'] = curve
     last_coin['datetime'] = datetime.today().isoformat()
     coin = classify_coin(curve)
@@ -47,8 +48,7 @@ def analyze():
 def curve():
     if last_coin['curve'] is None:
         return send_file('static/insert_coin.svg', mimetype='image/svg+xml')
-    df = normalize(last_coin['curve'])
-    figure = df.plot().get_figure()
+    figure = last_coin['curve'].plot().get_figure()
     img = BytesIO()
     figure.savefig(img)
     img.seek(0)

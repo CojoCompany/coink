@@ -108,9 +108,9 @@ def compare_l0(df):
 
 
 def classify_coin(curve):
-    min_x, l0_x, d0_x = axis_features(curve['x'])
-    if -0.40 > min_x > -0.55:
+    features_x = axis_features(curve['x'])
+    if -0.40 > features_x['min'] > -0.55:
         return 1
-    if -0.55 > min_x > -0.75:
+    if -0.55 > features_x['min'] > -0.75:
         return 2
     return -1
