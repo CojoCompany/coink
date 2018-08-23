@@ -97,10 +97,10 @@ To visualize these differences we can use box plots for all ``min``, ``l0`` and
    from analysis import compare_d0
    from analysis import compare_l0
    from analysis import compare_min
-   from analysis import data_features
+   from analysis import data_summary
 
 
-   df = data_features(c1, c2)
+   df = data_summary(c1, c2)
    compare_min(df)
    compare_d0(df)
    compare_l0(df)
