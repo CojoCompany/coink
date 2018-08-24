@@ -74,6 +74,13 @@ with your web browser. To do so, visit
 
 Now go ahead and insert one coin into your Coink! ^^
 
+.. raw:: html
+
+   <div style="position: relative; padding-bottom: 60%; height: 0;">
+     <iframe src="https://www.youtube-nocookie.com/embed/FcyVjBXFm-M?rel=0" frameborder="0" allow="autoplay; encrypted-media" allowfullscreen width="100%" style="position: absolute; top: 0; left: 0; width: 100%; height: 100%">
+     </iframe>
+   </div>
+
 
 .. index:: thingspeak
 
